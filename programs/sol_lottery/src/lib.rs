@@ -1,8 +1,9 @@
 // programs/sol_lottery/src/lib.rs
 
 use anchor_lang::prelude::*;
-use anchor_spl::token_2022::{
-    self as token, Mint, Token2022, TokenAccount, TransferChecked,
+use anchor_spl::{
+    token_2022::{self as token, TransferChecked},
+    token_interface::{Mint, TokenAccount, TokenInterface},
 };
 
 declare_id!("6hqUSoAvitrjTuJrfoWyVT2YP1Db2BF7jtNYmaJU7cyE");
@@ -90,7 +91,9 @@ pub mod sol_lottery {
                 / ACC_PRECISION;
 
             if pending > 0 {
-                let seeds = vault_seeds(state);
+                let state_key = state.key();
+                let (prefix, key, bump) = vault_seeds(&state_key, state.vault_bump);
+                let seeds = &[prefix, key, &bump];
                 let signer = &[&seeds[..]];
 
                 let cpi = CpiContext::new_with_signer(
@@ -144,7 +147,9 @@ pub mod sol_lottery {
                 / ACC_PRECISION;
 
             if pending > 0 {
-                let seeds = vault_seeds(state);
+                let state_key = state.key();
+                let (prefix, key, bump) = vault_seeds(&state_key, state.vault_bump);
+                let seeds = &[prefix, key, &bump];
                 let signer = &[&seeds[..]];
 
                 let cpi = CpiContext::new_with_signer(
@@ -164,7 +169,9 @@ pub mod sol_lottery {
 
         // вернуть часть стейка пользователю
         {
-            let seeds = staking_seeds(state);
+            let state_key = state.key();
+            let (prefix, key, bump) = staking_seeds(&state_key, state.staking_bump);
+            let seeds = &[prefix, key, &bump];
             let signer = &[&seeds[..]];
 
             let cpi = CpiContext::new_with_signer(
@@ -199,7 +206,9 @@ pub mod sol_lottery {
 
         require!(pending > 0, LotteryError::NothingToClaim);
 
-        let seeds = vault_seeds(state);
+        let state_key = state.key();
+        let (prefix, key, bump) = vault_seeds(&state_key, state.vault_bump);
+        let seeds = &[prefix, key, &bump];
         let signer = &[&seeds[..]];
 
         let cpi = CpiContext::new_with_signer(
@@ -236,7 +245,9 @@ pub mod sol_lottery {
         let decimals = ctx.accounts.mint.decimals;
 
         if creator_share > 0 {
-            let seeds = vault_seeds(state);
+            let state_key = state.key();
+            let (prefix, key, bump) = vault_seeds(&state_key, state.vault_bump);
+            let seeds = &[prefix, key, &bump];
             let signer = &[&seeds[..]];
 
             let cpi = CpiContext::new_with_signer(
@@ -518,20 +529,12 @@ pub enum LotteryError {
 
 // -------------------- Helpers --------------------
 
-fn vault_seeds(state: &Account<PoolState>) -> Vec<u8> {
-    // seeds: [b"vault", pool_state.key().as_ref(), &[vault_bump]]
-    let mut v = Vec::with_capacity(5 + 32 + 1);
-    v.extend_from_slice(b"vault");
-    v.extend_from_slice(state.key().as_ref());
-    v.push(state.vault_bump);
-    v
+/// Returns components of the seeds used for the vault authority PDA.
+fn vault_seeds<'a>(state_key: &'a Pubkey, vault_bump: u8) -> (&'static [u8], &'a [u8], [u8; 1]) {
+    (b"vault", state_key.as_ref(), [vault_bump])
 }
 
-fn staking_seeds(state: &Account<PoolState>) -> Vec<u8> {
-    // seeds: [b"staking", pool_state.key().as_ref(), &[staking_bump]]
-    let mut v = Vec::with_capacity(8 + 32 + 1);
-    v.extend_from_slice(b"staking");
-    v.extend_from_slice(state.key().as_ref());
-    v.push(state.staking_bump);
-    v
+/// Returns components of the seeds used for the staking authority PDA.
+fn staking_seeds<'a>(state_key: &'a Pubkey, staking_bump: u8) -> (&'static [u8], &'a [u8], [u8; 1]) {
+    (b"staking", state_key.as_ref(), [staking_bump])
 }
