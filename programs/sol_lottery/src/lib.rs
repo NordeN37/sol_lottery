@@ -137,7 +137,10 @@ pub mod sol_lottery {
         let user = &mut ctx.accounts.user_stake;
         let decimals = ctx.accounts.mint.decimals;
 
-        require!(amount > 0 && amount <= user.amount, LotteryError::BadUnstakeAmount);
+        require!(
+            amount > 0 && amount <= user.amount,
+            LotteryError::BadUnstakeAmount
+        );
 
         // auto-claim
         {
@@ -232,10 +235,16 @@ pub mod sol_lottery {
     pub fn draw_weekly(ctx: Context<DrawWeekly>) -> Result<()> {
         let state = &mut ctx.accounts.pool_state;
         let now = Clock::get()?.unix_timestamp;
-        require!(now >= state.last_draw_ts + state.draw_interval, LotteryError::TooEarly);
+        require!(
+            now >= state.last_draw_ts + state.draw_interval,
+            LotteryError::TooEarly
+        );
 
         let vault_balance = ctx.accounts.vault_token_account.amount;
-        require!(vault_balance >= state.vault_accounted, LotteryError::Invariant);
+        require!(
+            vault_balance >= state.vault_accounted,
+            LotteryError::Invariant
+        );
 
         let delta = vault_balance - state.vault_accounted;
         require!(delta > 0, LotteryError::NoNewFees);
@@ -267,9 +276,7 @@ pub mod sol_lottery {
         let reward = delta - creator_share;
         if reward > 0 {
             require!(state.total_staked > 0, LotteryError::NoStakers);
-            let add = (reward as u128)
-                .saturating_mul(ACC_PRECISION)
-                / (state.total_staked as u128);
+            let add = (reward as u128).saturating_mul(ACC_PRECISION) / (state.total_staked as u128);
             state.acc_reward_per_share = state.acc_reward_per_share.saturating_add(add);
             state.vault_accounted = state.vault_accounted.saturating_add(reward);
         }
@@ -299,7 +306,7 @@ pub struct Initialize<'info> {
     )]
     pub vault_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK: PDA-авторити для vault
-    #[account(seeds = [b"vault", pool_state.key().as_ref()], bump)]
+    #[account(seeds = [b"vault-auth", pool_state.key().as_ref()], bump)]
     pub vault_authority: UncheckedAccount<'info>,
 
     // PDA staking (кастодиальный стейкинг)
@@ -313,7 +320,7 @@ pub struct Initialize<'info> {
     )]
     pub staking_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK: PDA-авторити для staking
-    #[account(seeds = [b"staking", pool_state.key().as_ref()], bump)]
+    #[account(seeds = [b"staking-auth", pool_state.key().as_ref()], bump)]
     pub staking_authority: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -350,21 +357,21 @@ pub struct Stake<'info> {
     #[account(
         mut,
         seeds = [b"vault", pool_state.key().as_ref()],
-        bump = pool_state.vault_bump
+        bump
     )]
     pub vault_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK:
-    #[account(seeds = [b"vault", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
+    #[account(seeds = [b"vault-auth", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
     pub vault_authority: UncheckedAccount<'info>,
 
     #[account(
         mut,
         seeds = [b"staking", pool_state.key().as_ref()],
-        bump = pool_state.staking_bump
+        bump
     )]
     pub staking_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK:
-    #[account(seeds = [b"staking", pool_state.key().as_ref()], bump = pool_state.staking_bump)]
+    #[account(seeds = [b"staking-auth", pool_state.key().as_ref()], bump = pool_state.staking_bump)]
     pub staking_authority: UncheckedAccount<'info>,
 
     #[account(
@@ -396,21 +403,21 @@ pub struct Unstake<'info> {
     #[account(
         mut,
         seeds = [b"vault", pool_state.key().as_ref()],
-        bump = pool_state.vault_bump
+        bump
     )]
     pub vault_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK:
-    #[account(seeds = [b"vault", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
+    #[account(seeds = [b"vault-auth", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
     pub vault_authority: UncheckedAccount<'info>,
 
     #[account(
         mut,
         seeds = [b"staking", pool_state.key().as_ref()],
-        bump = pool_state.staking_bump
+        bump
     )]
     pub staking_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK:
-    #[account(seeds = [b"staking", pool_state.key().as_ref()], bump = pool_state.staking_bump)]
+    #[account(seeds = [b"staking-auth", pool_state.key().as_ref()], bump = pool_state.staking_bump)]
     pub staking_authority: UncheckedAccount<'info>,
 
     #[account(mut, seeds = [b"user", pool_state.key().as_ref(), user.key().as_ref()], bump)]
@@ -434,11 +441,11 @@ pub struct Claim<'info> {
     #[account(
         mut,
         seeds = [b"vault", pool_state.key().as_ref()],
-        bump = pool_state.vault_bump
+        bump
     )]
     pub vault_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK:
-    #[account(seeds = [b"vault", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
+    #[account(seeds = [b"vault-auth", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
     pub vault_authority: UncheckedAccount<'info>,
 
     #[account(mut, seeds = [b"user", pool_state.key().as_ref(), user.key().as_ref()], bump)]
@@ -462,11 +469,11 @@ pub struct DrawWeekly<'info> {
     #[account(
         mut,
         seeds = [b"vault", pool_state.key().as_ref()],
-        bump = pool_state.vault_bump
+        bump
     )]
     pub vault_token_account: InterfaceAccount<'info, TokenAccount>,
     /// CHECK:
-    #[account(seeds = [b"vault", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
+    #[account(seeds = [b"vault-auth", pool_state.key().as_ref()], bump = pool_state.vault_bump)]
     pub vault_authority: UncheckedAccount<'info>,
 
     /// ATA владельца пула (куда уйдут 30%)
@@ -496,8 +503,8 @@ impl PoolState {
 
 #[account]
 pub struct UserStake {
-    pub amount: u64,        // сколько застейкано
-    pub reward_debt: u128,  // accrual debt
+    pub amount: u64,       // сколько застейкано
+    pub reward_debt: u128, // accrual debt
 }
 impl UserStake {
     pub const SIZE: usize = 8 + 16;
@@ -531,10 +538,13 @@ pub enum LotteryError {
 
 /// Returns components of the seeds used for the vault authority PDA.
 fn vault_seeds<'a>(state_key: &'a Pubkey, vault_bump: u8) -> (&'static [u8], &'a [u8], [u8; 1]) {
-    (b"vault", state_key.as_ref(), [vault_bump])
+    (b"vault-auth", state_key.as_ref(), [vault_bump])
 }
 
 /// Returns components of the seeds used for the staking authority PDA.
-fn staking_seeds<'a>(state_key: &'a Pubkey, staking_bump: u8) -> (&'static [u8], &'a [u8], [u8; 1]) {
-    (b"staking", state_key.as_ref(), [staking_bump])
+fn staking_seeds<'a>(
+    state_key: &'a Pubkey,
+    staking_bump: u8,
+) -> (&'static [u8], &'a [u8], [u8; 1]) {
+    (b"staking-auth", state_key.as_ref(), [staking_bump])
 }

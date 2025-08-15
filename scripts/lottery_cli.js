@@ -36,7 +36,7 @@ async function loadProgram(provider) {
 
 function deriveVault(programId, pool) {
   const [vaultAuthority] = PublicKey.findProgramAddressSync(
-    [Buffer.from("vault"), pool.toBuffer()],
+    [Buffer.from("vault-auth"), pool.toBuffer()],
     programId
   );
   const [vaultTokenAccount] = PublicKey.findProgramAddressSync(
@@ -48,7 +48,7 @@ function deriveVault(programId, pool) {
 
 function deriveStaking(programId, pool) {
   const [stakingAuthority] = PublicKey.findProgramAddressSync(
-    [Buffer.from("staking"), pool.toBuffer()],
+    [Buffer.from("staking-auth"), pool.toBuffer()],
     programId
   );
   const [stakingTokenAccount] = PublicKey.findProgramAddressSync(

@@ -26,17 +26,27 @@ describe("sol_lottery", () => {
       TOKEN_2022_PROGRAM_ID
     );
 
-    // Derive PDA for vault (token account + authority)
+    // Derive PDA for vault token account and its authority
     const [vaultTokenAccount, _vaultBump] =
       anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("vault"), poolState.publicKey.toBuffer()],
         program.programId
       );
+    const [vaultAuthority, _vaultAuthBump] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("vault-auth"), poolState.publicKey.toBuffer()],
+        program.programId
+      );
 
-    // Derive PDA for staking (token account + authority)
+    // Derive PDA for staking token account and its authority
     const [stakingTokenAccount, _stakingBump] =
       anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("staking"), poolState.publicKey.toBuffer()],
+        program.programId
+      );
+    const [stakingAuthority, _stakingAuthBump] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("staking-auth"), poolState.publicKey.toBuffer()],
         program.programId
       );
 
@@ -47,9 +57,9 @@ describe("sol_lottery", () => {
         poolState: poolState.publicKey,
         mint,
         vaultTokenAccount,
-        vaultAuthority: vaultTokenAccount,
+        vaultAuthority,
         stakingTokenAccount,
-        stakingAuthority: stakingTokenAccount,
+        stakingAuthority,
         owner: provider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -58,9 +68,7 @@ describe("sol_lottery", () => {
       .signers([poolState])
       .rpc();
 
-    const state = await program.account.poolState.fetch(
-      poolState.publicKey
-    );
+    const state = await program.account.poolState.fetch(poolState.publicKey);
 
     assert.strictEqual(
       state.owner.toString(),
