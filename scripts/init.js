@@ -13,7 +13,7 @@ const path = require("path");
 
 async function loadProgram(provider) {
     try {
-        // если программa есть в workspace (anchor test/dev)
+        // если программа есть в workspace (anchor test/dev)
         const p = anchor.workspace.SolLottery;
         if (p) return p;
     } catch {}
