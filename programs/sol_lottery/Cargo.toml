@@ -1,0 +1,17 @@
+[package]
+name = "sol_lottery"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sol_lottery"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed", "idl-build"] }
+anchor-spl  = { version = "0.31.1", features = ["token", "token_2022", "idl-build"] }
+regex       = { version = "=1.7.3", default-features = false, features = ["std"] }
+
+[features]
+default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]

@@ -1,0 +1,15 @@
+[workspace]
+members = ["programs/sol_lottery"]
+resolver = "2"
+
+[workspace.dependencies]
+regex = "=1.7.3"
+regex-syntax = "=0.6.29"
+regex-automata = "=0.1.10"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = "s"
+panic = "abort"
+overflow-checks = true

@@ -1,0 +1,16 @@
+[features]
+seeds = true
+skip-lint = false
+
+[programs.devnet]
+sol_lottery = "6hqUSoAvitrjTuJrfoWyVT2YP1Db2BF7jtNYmaJU7cyE"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "node --version"
