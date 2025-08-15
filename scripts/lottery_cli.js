@@ -6,6 +6,7 @@
 //   node scripts/lottery_cli.js claim <POOL_STATE>
 //   node scripts/lottery_cli.js draw_weekly <POOL_STATE>
 //   node scripts/lottery_cli.js tx_with_fee <POOL_STATE> <FROM_OWNER> <TO_OWNER> <MINT_2022> <AMOUNT> <FEE_BPS>
+//       (отправителем может быть только локальный кошелёк)
 
 const anchor = require("@coral-xyz/anchor");
 const { PublicKey, SystemProgram } = require("@solana/web3.js");
@@ -266,9 +267,9 @@ async function main() {
 
     const { vaultTokenAccount } = deriveVault(program.programId, pool);
 
-    // MVP: отправителем выступает локальный кошелёк
+    // Отправителем может быть только локальный кошелёк
     if (!fromOwner.equals(wallet.publicKey)) {
-      throw new Error("Sender must equal local wallet in this CLI MVP");
+      throw new Error("Sender must be the local wallet");
     }
 
     // ATA для from/to (Token-2022)

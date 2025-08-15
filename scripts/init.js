@@ -1,8 +1,8 @@
 // scripts/init.js
 // Инициализация пула (initialize) под Token-2022
 // usage:
-// ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
-// ANCHOR_WALLET=~/.config/solana/id.json \
+// ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \\
+// ANCHOR_WALLET=~/.config/solana/id.json \\
 // node scripts/init.js target/pool_state.json <MINT_2022_PUBKEY> [intervalSec=604800]
 
 const anchor = require("@coral-xyz/anchor");
@@ -13,7 +13,7 @@ const path = require("path");
 
 async function loadProgram(provider) {
   try {
-    // если программa есть в workspace (anchor test/dev)
+    // если программа есть в workspace (anchor test/dev)
     const p = anchor.workspace.SolLottery;
     if (p) return p;
   } catch {}
