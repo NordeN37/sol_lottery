@@ -6,7 +6,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
 
-declare_id!("6hqUSoAvitrjTuJrfoWyVT2YP1Db2BF7jtNYmaJU7cyE");
+declare_id!("BPrCzmhQwZ7363jpjZ2GgLRbvqo9pkgJp5b8mXDVRUgW");
 
 const ACC_PRECISION: u128 = 1_000_000_000_000; // масштаб для acc_reward_per_share
 
@@ -31,17 +31,12 @@ pub mod sol_lottery {
         Ok(())
     }
 
-    /// MVP-перевод с комиссией fee_bps -> в пул (кастомно).
+    /// MVP-перевод с фиксированной комиссией 0.5% (amount / 200) -> в пул.
     /// Если используешь Token-2022 transfer-fee, эта инструкция не обязательна.
-    pub fn transfer_with_fee(
-        ctx: Context<TransferWithFee>,
-        amount: u64,
-        fee_bps: u64,
-    ) -> Result<()> {
-        require!(fee_bps <= 10_000, LotteryError::BadFee);
+    pub fn transfer_with_fee(ctx: Context<TransferWithFee>, amount: u64) -> Result<()> {
         require!(amount > 0, LotteryError::ZeroAmount);
 
-        let fee = amount.saturating_mul(fee_bps) / 10_000;
+        let fee = amount / 200; // 0.5%
         let remainder = amount.saturating_sub(fee);
         let decimals = ctx.accounts.mint.decimals;
 
@@ -516,8 +511,6 @@ impl UserStake {
 pub enum LotteryError {
     #[msg("Bad draw interval")]
     BadInterval,
-    #[msg("Fee bps out of range")]
-    BadFee,
     #[msg("Amount must be > 0")]
     ZeroAmount,
     #[msg("Bad unstake amount")]

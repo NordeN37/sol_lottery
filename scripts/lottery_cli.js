@@ -5,7 +5,7 @@
 //   node scripts/lottery_cli.js unstake <POOL_STATE> <MINT_2022> <AMOUNT>
 //   node scripts/lottery_cli.js claim <POOL_STATE>
 //   node scripts/lottery_cli.js draw_weekly <POOL_STATE>
-//   node scripts/lottery_cli.js tx_with_fee <POOL_STATE> <FROM_OWNER> <TO_OWNER> <MINT_2022> <AMOUNT> <FEE_BPS>
+//   node scripts/lottery_cli.js tx_with_fee <POOL_STATE> <FROM_OWNER> <TO_OWNER> <MINT_2022> <AMOUNT>
 //       (отправителем может быть только локальный кошелёк)
 
 const anchor = require("@coral-xyz/anchor");
@@ -256,14 +256,12 @@ async function main() {
   }
 
   if (cmd === "tx_with_fee") {
-    const [poolStr, fromOwnerStr, toOwnerStr, mintStr, amountStr, feeBpsStr] =
-      args;
+    const [poolStr, fromOwnerStr, toOwnerStr, mintStr, amountStr] = args;
     const pool = new PublicKey(poolStr);
     const fromOwner = new PublicKey(fromOwnerStr);
     const toOwner = new PublicKey(toOwnerStr);
     const mint = new PublicKey(mintStr);
     const amount = new anchor.BN(amountStr);
-    const feeBps = new anchor.BN(feeBpsStr); // параметр для твоей MVP-инструкции
 
     const { vaultTokenAccount } = deriveVault(program.programId, pool);
 
@@ -289,8 +287,9 @@ async function main() {
     );
 
     const sig = await program.methods
-      .transferWithFee(amount, feeBps) // твоя on-chain MVP-логика (не Token-2022)
+      .transferWithFee(amount) // твоя on-chain MVP-логика (не Token-2022)
       .accounts({
+        mint,
         from: fromAta,
         to: toAta,
         vaultTokenAccount,
